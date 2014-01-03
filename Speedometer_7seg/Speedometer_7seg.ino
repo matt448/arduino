@@ -19,12 +19,25 @@ unsigned int count;
 float mph;
 unsigned int imph;
 int roundedMph;
+
+const int numReadings = 30;     // the number of readings for average brightness
+int readings[numReadings];      // the readings array for the analog input
+int index = 0;                  // the index of the current reading
+int total = 0;                  // the running total
+int average = 3; 
+
 Adafruit_7segment matrix = Adafruit_7segment();
 byte segment_address = 0x70; //This is hex address of the 7 segment display
 boolean drawDots = true;
 
 void setup(void) {
   Serial.begin(9600);
+  
+  // initialize all the brightness readings to 3: 
+  for (int thisReading = 0; thisReading < numReadings; thisReading++)
+    readings[thisReading] = 5; 
+    
+  // Start up the 7 segment display and set initial vaules  
   matrix.begin(segment_address);
   setBrightness(3, segment_address);
   matrix.println(0);
@@ -35,32 +48,57 @@ void setup(void) {
 }
 
 void loop() {
+  /////////////////////////////////////////////////////////////
+  // Set the LCD brightness using a running average of
+  // values to help smooth out changes in brightness. 
+  //
+  total= total - readings[index];  // subtract the last reading:       
+  // read from the sensor:
   int reading  = analogRead(lightPin);
   int brightness = (reading / 2) / 15;
+  //Max brightness on this display is 15
   if(brightness > 15){
     brightness = 15;
-  }
-  setBrightness(brightness, segment_address);
+  }  
+  readings[index] = brightness; 
+  // add the reading to the total:
+  total= total + readings[index];       
+  // advance to the next position in the array:  
+  index = index + 1;                    
+  // if we're at the end of the array...
+  if (index >= numReadings)              
+    // ...wrap around to the beginning: 
+    index = 0;                           
+  // calculate the average:
+  average = total / numReadings;
+  Serial.println(average);  
+  setBrightness(average, segment_address); //Set the brightness using the average
   
+  
+  /////////////////////////////////////////////////////////////
+  // This uses the hardware pulse counter on the Arduino.
+  // Currently it collects samples for one second.
+  //
   bitSet(TCCR1B, CS12); // start counting pulses
   bitSet(TCCR1B, CS11); // Clock on rising edge
   delay(samplePeriod); // Allow pulse counter to collect for samplePeriod
   TCCR1B = 0; // stop counting
   count = TCNT1; // Store the hardware counter in a variable
   TCNT1 = 0;     // Reset hardware counter to zero
-  mph = (count/convertMph)*10;
-
-  imph = (unsigned int) mph;
+  mph = (count/convertMph)*10; // Convert pulse count into mph.
+  imph = (unsigned int) mph; // Cast to integer. 10x allows retaining 10th of mph resolution.
 
   int x = imph / 10;
   int y = imph % 10;
   
+  // Round to whole mile per hour
   if(y >= 5){
     roundedMph = x + 1;
   }else{
     roundedMph = x;
   }
-    
+  
+  // Write the value to the 7 segment display.  
   matrix.println(roundedMph);
   matrix.writeDisplay();
 }
