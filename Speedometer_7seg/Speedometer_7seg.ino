@@ -4,9 +4,10 @@
 #include <Wire.h>
 
 void setBrightness(uint8_t b, byte segment_address) {
-  if (b > 15) b = 15;
+  if (b > 15) b = 15; //Max brightness on this display is 15.
+  if (b < 1) b = 1; // Brightness of 0 is too dim so make 1 the min.
   Wire.beginTransmission(segment_address);
-  Wire.write(0xE0 | b);
+  Wire.write(0xE0 | b); // write the brightness value to the hex address.
   Wire.endTransmission();  
 }
 
@@ -19,6 +20,8 @@ unsigned int count;
 float mph;
 unsigned int imph;
 int roundedMph;
+int previousMph;
+int prevCount;
 
 const int numReadings = 30;     // the number of readings for average brightness
 int readings[numReadings];      // the readings array for the analog input
@@ -56,10 +59,6 @@ void loop() {
   // read from the sensor:
   int reading  = analogRead(lightPin);
   int brightness = (reading / 2) / 15;
-  //Max brightness on this display is 15
-  if(brightness > 15){
-    brightness = 15;
-  }  
   readings[index] = brightness; 
   // add the reading to the total:
   total= total + readings[index];       
@@ -70,8 +69,7 @@ void loop() {
     // ...wrap around to the beginning: 
     index = 0;                           
   // calculate the average:
-  average = total / numReadings;
-  Serial.println(average);  
+  average = total / numReadings; 
   setBrightness(average, segment_address); //Set the brightness using the average
   
   
@@ -98,8 +96,17 @@ void loop() {
     roundedMph = x;
   }
   
-  // Write the value to the 7 segment display.  
-  matrix.println(roundedMph);
-  matrix.writeDisplay();
+  // Don't display mph readings that are more than 50 mph higher than the 
+  // previous reading because it is probably a spurious reading.
+  // Accelerating 50mph in one second is rocketship fast.
+  if((roundedMph - previousMph) > 50){
+    matrix.println(previousMph);
+  }else{
+    matrix.println(roundedMph);
+  }
+  
+  matrix.writeDisplay(); // Write the value to the 7 segment display. 
+  
+  previousMph = roundedMph; // Set previousMph for use in next loop.
 }
 
