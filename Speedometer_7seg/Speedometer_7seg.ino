@@ -1,4 +1,18 @@
-#include "Adafruit_GFX.h"    // Core graphics library
+// Matthew McMillan 
+// @matthewmcmillan
+// http://matthewcmcmillan.blogspot.com
+//
+// Digital speedometer
+//
+// VSS on car connects to pin 5
+// CLK on display to Analog pin 5
+// DAT on display to Analog pin 4
+//
+// Requires two Adafruit libraries:
+//   Adafruit_GFX
+//   Adafruit_LEDBackpack
+
+#include "Adafruit_GFX.h"    // Adafruit Core graphics library
 #include "Adafruit_LEDBackpack.h" // Seven Segment display library
 #include <SPI.h>
 #include <Wire.h>
@@ -38,7 +52,7 @@ void setup(void) {
   
   // initialize all the brightness readings to 3: 
   for (int thisReading = 0; thisReading < numReadings; thisReading++)
-    readings[thisReading] = 5; 
+    readings[thisReading] = 3; 
     
   // Start up the 7 segment display and set initial vaules  
   matrix.begin(segment_address);
@@ -46,8 +60,8 @@ void setup(void) {
   matrix.println(0);
   matrix.writeDisplay();
 
-  TCCR1A=0; //Configure hardware counter 
-  TCNT1 = 0;  // Reset hardware counter to zero  
+  TCCR1A = 0; //Configure hardware counter 
+  TCNT1 = 0;  // Reset hardware counter to zero
 }
 
 void loop() {
@@ -55,13 +69,19 @@ void loop() {
   // Set the LCD brightness using a running average of
   // values to help smooth out changes in brightness. 
   //
-  total= total - readings[index];  // subtract the last reading:       
   // read from the sensor:
   int reading  = analogRead(lightPin);
   int brightness = (reading / 2) / 15;
+  if(brightness > 15){
+    brightness = 15;
+  }
+  if(brightness < 1){
+    brightness = 1;
+  }
+
   readings[index] = brightness; 
   // add the reading to the total:
-  total= total + readings[index];       
+  total = total + readings[index];       
   // advance to the next position in the array:  
   index = index + 1;                    
   // if we're at the end of the array...
@@ -69,6 +89,10 @@ void loop() {
     // ...wrap around to the beginning: 
     index = 0;                           
   // calculate the average:
+  total = 0;
+  for (int thisReading = 0; thisReading < numReadings; thisReading++){
+    total = total + readings[thisReading];
+  }
   average = total / numReadings; 
   setBrightness(average, segment_address); //Set the brightness using the average
   
