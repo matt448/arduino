@@ -93,7 +93,7 @@ void loop() {
   for (int thisReading = 0; thisReading < numReadings; thisReading++){
     total = total + readings[thisReading];
   }
-  average = total / numReadings; 
+  average = total / numReadings;
   setBrightness(average, segment_address); //Set the brightness using the average
   
   
@@ -120,9 +120,17 @@ void loop() {
     roundedMph = x;
   }
   
+  //If mph is less than 1mph just show 0mph.
+  //Readings of 0.9mph or lower are some what erratic and can
+  //occasionally be triggered by electrical noise.
+  if(x == 0){
+    roundedMph = 0;
+  }
+  
   // Don't display mph readings that are more than 50 mph higher than the 
   // previous reading because it is probably a spurious reading.
-  // Accelerating 50mph in one second is rocketship fast.
+  // Accelerating 50mph in one second is rocketship fast so it is probably
+  // not real.
   if((roundedMph - previousMph) > 50){
     matrix.println(previousMph);
   }else{
