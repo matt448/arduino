@@ -37,7 +37,7 @@
      * An LED and a 220-ohm resistor in series connected from each W pin to ground
      * VSS - to GND
      * VDD - to +5v
-     * SHDN - to digital pin 7
+     * SHDN - to digital pin 7 and a 4.7k pull down resistor
      * CS - to digital pin 10  (SS pin)
      * SDI - to digital pin 11 (MOSI pin)
      * SDO - to digital pin 12 (MISO pin)
