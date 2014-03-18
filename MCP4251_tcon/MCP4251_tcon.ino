@@ -34,7 +34,7 @@
  The circuit:
      * All A pins of MCP4251 connected to +5V
      * All B pins of MCP4251 connected to ground
-     * An LED and a 220-ohm resisor in series connected from each W pin to ground
+     * An LED and a 220-ohm resistor in series connected from each W pin to ground
      * VSS - to GND
      * VDD - to +5v
      * SHDN - to digital pin 7
