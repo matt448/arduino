@@ -1,4 +1,11 @@
 /*
+
+  Matthew McMillan
+  @matthewmcmillan
+  http://matthewcmcmillan.blogspot.com
+
+  Created 12 Mar 2014
+
   Digital Pot Control (MCP4251)
   
   This example controls a Microchip MCP4251 digital potentiometer.
@@ -37,7 +44,6 @@
      * CLK - to digital pin 13 (SCK pin)
  
  created 12 Mar 2014 
- by Matthew McMillan
  
  Thanks to Heather Dewey-Hagborg and Tom Igoe for their original tutorials
  
@@ -69,6 +75,9 @@ void setup() {
   SPI.begin(); 
 }
 
+// This loop adjusts the brightness of two LEDs and
+// uses the TCON registers to indvidually disconnect
+// the wipers which turns off the LEDs.
 void loop() {
   digitalWrite(shutdownPin,HIGH); //Turn off shutdown
   delay(1000);
