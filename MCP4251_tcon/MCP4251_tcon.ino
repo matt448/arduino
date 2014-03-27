@@ -65,6 +65,7 @@ const int tcon_0off_1off = B00000000;
 const int tcon_0on_1on = B11111111;
 
 void setup() {
+  Serial.begin(9600);
   // set the slaveSelectPin as an output:
   pinMode (slaveSelectPin, OUTPUT);
   // set the shutdownPin as an output:
@@ -72,24 +73,51 @@ void setup() {
   // start with all the pots shutdown
   digitalWrite(shutdownPin,LOW);
   // initialize SPI:
-  SPI.begin(); 
+  SPI.begin();
+  Serial.println("Setup complete");
 }
 
 // This loop adjusts the brightness of two LEDs and
 // uses the TCON registers to indvidually disconnect
 // the wipers which turns off the LEDs.
 void loop() {
+  Serial.println("Starting loop");
   digitalWrite(shutdownPin,HIGH); //Turn off shutdown
+  
+  for(int x=255; x> 0; x--){
+    Serial.print("Value sent to pot: ");
+    Serial.println(x);
+    digitalPotWrite(wiper0writeAddr, x);
+    delay(200);
+    int wiper0pos = digitalPotRead(B00001100);
+    Serial.print("wiper0 position: ");
+    Serial.println(wiper0pos);
+    wiper0pos = digitalPotRead(B00001100);
+    Serial.print("wiper0 position 2nd read: ");
+    Serial.println(wiper0pos);
+    Serial.println();
+    delay(200);
+  }
+  
+
+  int wiper0pos = digitalPotRead(B00001100);
+  Serial.print("wiper0 position: ");
+  Serial.println(wiper0pos);
   delay(1000);
-  digitalPotWrite(wiper0writeAddr, 200); // Set wiper 0 to 200
+  digitalPotWrite(wiper0writeAddr, 150); // Set wiper 0 to 200
+  wiper0pos = digitalPotRead(B000011);
+  Serial.print("wiper0 position: ");
+  Serial.println(wiper0pos);
   digitalPotWrite(wiper1writeAddr, 200); // Set wiper 1 to 200
   delay(1000);
   digitalPotWrite(tconwriteAddr, tcon_0off_1on); // Disconnect wiper 0 with TCON register
   delay(1000);
   digitalPotWrite(tconwriteAddr, tcon_0off_1off); // Disconnect both wipers with TCON register
-  digitalPotWrite(wiper0writeAddr, 255); //Set wiper 0 to 255
+  digitalPotWrite(wiper0writeAddr, 250); //Set wiper 0 to 255
   delay(1000);
   digitalPotWrite(tconwriteAddr, tcon_0on_1on); // Connect both wipers with TCON register
+  Serial.println("Finished loop");
+  Serial.println();
 }
 
 // This function takes care of sending SPI data to the pot.
@@ -99,6 +127,25 @@ void digitalPotWrite(int address, int value) {
   //  send in the address and value via SPI:
   SPI.transfer(address);
   SPI.transfer(value);
+  delay(30);
   // take the SS pin high to de-select the chip:
   digitalWrite(slaveSelectPin,HIGH); 
 }
+
+int digitalPotRead(int address) {
+  // take the SS pin low to select the chip:
+  digitalWrite(slaveSelectPin,LOW);
+  //  send in the address via SPI:
+  SPI.transfer(address);
+  // send zero to read data from the address
+  int data1=SPI.transfer(B00000000);
+  delay(30);
+  // take the SS pin high to de-select the chip:
+  digitalWrite(slaveSelectPin,HIGH);
+  Serial.print("Data1 digitalPotRead: ");
+  Serial.println(data1, BIN);
+  return(data1);
+}
+
+
+
