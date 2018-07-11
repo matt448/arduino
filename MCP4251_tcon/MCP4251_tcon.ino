@@ -50,7 +50,7 @@
 */
 
 
-// inslude the SPI library:
+// include the SPI library:
 #include <SPI.h>
 
 // set pin 10 as the slave select for the digital pot:
